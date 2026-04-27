@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="F.R.I.D.A.Y">
+<meta name="theme-color" content="#060A0F">
+<title>F.R.I.D.A.Y</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c: #00D4FF;
+  --cd: #0099BB;
+  --cg: rgba(0,212,255,0.12);
+  --cg2: rgba(0,212,255,0.05);
+  --r: #FF3B3B;
+  --g: #00FF88;
+  --a: #FFB700;
+  --bg: #060A0F;
+  --bg2: #0A1018;
+  --bg3: #0D1520;
+  --t: #B8D8E8;
+  --td: #4A7A8A;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--t); font-family:'Share Tech Mono',monospace; }
+
+/* ── BG EFFECTS ── */
+body::before {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(0,212,255,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(0,212,255,0.05) 0%, transparent 50%);
+}
+.grid-bg {
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ── LAYOUT ── */
+#app {
+  position:relative; z-index:1;
+  display:flex; flex-direction:column;
+  height:100vh; height:100dvh;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  flex-shrink:0;
+  padding:10px 16px 8px;
+  border-bottom:1px solid rgba(0,212,255,0.15);
+  display:flex; align-items:center; justify-content:space-between;
+  background:rgba(6,10,15,0.9); backdrop-filter:blur(10px);
+  padding-top: calc(10px + env(safe-area-inset-top, 0px));
+}
+.logo { font-family:'Orbitron',sans-serif; font-weight:900; font-size:17px; letter-spacing:5px; color:var(--c); text-shadow:0 0 20px var(--c); }
+.logo-sub { font-size:8px; letter-spacing:2px; color:var(--td); display:block; margin-top:-1px; }
+.top-right { display:flex; flex-direction:column; align-items:flex-end; gap:3px; }
+.status-dot {
+  display:flex; align-items:center; gap:5px;
+  font-size:9px; letter-spacing:1.5px; color:var(--td);
+}
+.dot { width:6px; height:6px; border-radius:50%; background:var(--td); }
+.dot.online { background:var(--g); box-shadow:0 0 6px var(--g); animation:blink-dot 2s ease-in-out infinite; }
+.dot.error { background:var(--r); }
+#top-clock { font-size:10px; color:var(--td); letter-spacing:1px; }
+@keyframes blink-dot { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ── MESSAGES ── */
+.messages {
+  flex:1; overflow-y:auto; overflow-x:hidden;
+  padding:12px 14px;
+  display:flex; flex-direction:column; gap:12px;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.messages::-webkit-scrollbar { display:none; }
+
+/* Welcome */
+.welcome {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  flex:1; gap:14px; padding:20px; text-align:center; min-height:300px;
+}
+.welcome-arc {
+  width:90px; height:90px; position:relative;
+  display:flex; align-items:center; justify-content:center;
+}
+.arc-ring {
+  position:absolute; border-radius:50%; border-style:solid;
+  border-color:transparent; border-width:1.5px;
+}
+.arc-ring:nth-child(1) { inset:0; border-top-color:var(--c); animation:spin 4s linear infinite; }
+.arc-ring:nth-child(2) { inset:10px; border-right-color:var(--cd); animation:spin 3s linear infinite reverse; }
+.arc-ring:nth-child(3) { inset:20px; border-bottom-color:var(--c); animation:spin 2s linear infinite; }
+.arc-core {
+  width:22px; height:22px; border-radius:50%;
+  background:radial-gradient(circle, #fff 0%, var(--c) 50%, transparent 100%);
+  box-shadow:0 0 20px var(--c), 0 0 40px rgba(0,212,255,0.4);
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+.welcome-title { font-family:'Orbitron',sans-serif; font-size:28px; font-weight:900; letter-spacing:8px; color:var(--c); text-shadow:0 0 30px var(--c); }
+.welcome-sub { font-size:10px; letter-spacing:3px; color:var(--td); }
+.welcome-hint { font-size:12px; color:var(--td); line-height:1.8; max-width:280px; }
+
+/* Setup card */
+.setup-card {
+  background:var(--bg3); border:1px solid rgba(0,212,255,0.2);
+  border-left:2px solid var(--c); border-radius:6px;
+  padding:14px; margin:4px 0;
+}
+.setup-card h4 { font-family:'Orbitron',sans-serif; font-size:10px; letter-spacing:2px; color:var(--c); margin-bottom:10px; }
+.setup-input {
+  width:100%; background:var(--bg2); border:1px solid rgba(0,212,255,0.2);
+  border-radius:4px; color:var(--t); font-family:'Share Tech Mono',monospace;
+  font-size:13px; padding:10px 12px; outline:none; -webkit-appearance:none;
+}
+.setup-input:focus { border-color:var(--c); box-shadow:0 0 10px var(--cg); }
+.setup-btn {
+  margin-top:8px; width:100%;
+  background:var(--cg); border:1px solid var(--c);
+  color:var(--c); font-family:'Orbitron',sans-serif;
+  font-size:10px; letter-spacing:2px; padding:10px;
+  border-radius:4px; cursor:pointer;
+}
+
+/* Messages */
+.msg { display:flex; gap:9px; animation:fadeUp .25s ease; max-width:100%; }
+.msg.user { flex-direction:row-reverse; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.avatar {
+  width:30px; height:30px; flex-shrink:0; border-radius:4px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Orbitron',sans-serif; font-size:8px; letter-spacing:0.5px;
+  margin-top:2px;
+}
+.msg.friday .avatar { background:var(--cg); border:1px solid var(--c); color:var(--c); }
+.msg.user .avatar { background:rgba(255,183,0,0.1); border:1px solid var(--a); color:var(--a); }
+.bubble-wrap { display:flex; flex-direction:column; max-width:calc(100% - 42px); }
+.bubble {
+  padding:10px 13px; border-radius:4px; font-size:13.5px; line-height:1.75;
+  word-break:break-word; white-space:pre-wrap;
+}
+.msg.friday .bubble { background:rgba(0,212,255,0.04); border:1px solid rgba(0,212,255,0.15); border-left:2px solid var(--c); }
+.msg.user .bubble { background:rgba(255,183,0,0.05); border:1px solid rgba(255,183,0,0.2); border-right:2px solid var(--a); text-align:right; }
+.msg-time { font-size:9px; color:var(--td); margin-top:3px; letter-spacing:0.5px; padding:0 2px; }
+.msg.user .msg-time { text-align:right; }
+
+/* Action buttons in messages */
+.action-btns { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.action-btn {
+  padding:5px 12px; border-radius:20px; font-size:11px;
+  border:1px solid var(--c); color:var(--c);
+  background:var(--cg2); cursor:pointer;
+  display:flex; align-items:center; gap:5px;
+  font-family:'Share Tech Mono',monospace;
+}
+.action-btn:active { background:var(--cg); }
+
+/* Typing */
+.typing-dots { display:flex; gap:4px; padding:6px 0; }
+.typing-dots span { width:7px; height:7px; border-radius:50%; background:var(--c); opacity:0.3; animation:tdot 1.2s infinite; }
+.typing-dots span:nth-child(2){animation-delay:.2s} .typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes tdot{0%,100%{opacity:0.2;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
+
+/* ── VOICE DISPLAY ── */
+.voice-bar {
+  flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; gap:3px;
+  height:0; overflow:hidden; transition:height .3s ease;
+  background:rgba(0,212,255,0.03);
+}
+.voice-bar.active { height:44px; border-top:1px solid rgba(0,212,255,0.1); }
+.vbar { width:3px; min-height:3px; max-height:34px; background:var(--c); border-radius:2px; transition:height .08s; }
+.voice-label { font-size:10px; letter-spacing:2px; color:var(--c); margin:0 8px; }
+
+/* ── BOTTOM INPUT ── */
+.bottom-area {
+  flex-shrink:0;
+  background:rgba(6,10,15,0.95); backdrop-filter:blur(10px);
+  border-top:1px solid rgba(0,212,255,0.15);
+  padding:10px 12px calc(10px + var(--safe-bottom));
+}
+
+/* Quick actions strip */
+.quick-strip {
+  display:flex; gap:6px; overflow-x:auto; margin-bottom:8px;
+  scrollbar-width:none; -webkit-overflow-scrolling:touch;
+  padding-bottom:2px;
+}
+.quick-strip::-webkit-scrollbar { display:none; }
+.qchip {
+  flex-shrink:0; padding:5px 12px; border-radius:20px;
+  border:1px solid rgba(0,212,255,0.2); color:var(--td);
+  font-size:11px; background:transparent; cursor:pointer; white-space:nowrap;
+  font-family:'Share Tech Mono',monospace;
+}
+.qchip:active { border-color:var(--c); color:var(--c); background:var(--cg2); }
+
+/* Input row */
+.input-row { display:flex; gap:8px; align-items:flex-end; }
+.chat-input {
+  flex:1; background:var(--bg3); border:1px solid rgba(0,212,255,0.2);
+  border-radius:22px; color:var(--t); font-family:'Share Tech Mono',monospace;
+  font-size:14px; padding:11px 16px; outline:none;
+  resize:none; max-height:100px; min-height:44px;
+  line-height:1.4; -webkit-appearance:none;
+  transition:border-color .2s;
+}
+.chat-input:focus { border-color:var(--c); }
+.chat-input::placeholder { color:var(--td); }
+
+.mic-btn, .send-btn {
+  width:44px; height:44px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  border:1.5px solid var(--c); background:var(--cg2);
+  cursor:pointer; font-size:18px; transition:all .2s;
+}
+.mic-btn:active, .send-btn:active { background:var(--cg); transform:scale(0.95); }
+.mic-btn.recording { border-color:var(--g); background:rgba(0,255,136,0.1); animation:glow-green .5s ease-in-out infinite alternate; }
+@keyframes glow-green { from{box-shadow:0 0 5px rgba(0,255,136,0.2)} to{box-shadow:0 0 15px rgba(0,255,136,0.5)} }
+.send-btn { border-color:var(--c); }
+
+/* ── SETTINGS DRAWER ── */
+.drawer-overlay {
+  position:fixed; inset:0; z-index:100;
+  background:rgba(0,0,0,0.7); opacity:0; pointer-events:none;
+  transition:opacity .3s;
+}
+.drawer-overlay.open { opacity:1; pointer-events:all; }
+.drawer {
+  position:fixed; bottom:0; left:0; right:0; z-index:101;
+  background:var(--bg2); border-top:1px solid rgba(0,212,255,0.2);
+  border-radius:16px 16px 0 0;
+  padding:16px 16px calc(16px + var(--safe-bottom));
+  transform:translateY(100%); transition:transform .3s cubic-bezier(.4,0,.2,1);
+  max-height:85vh; overflow-y:auto;
+}
+.drawer.open { transform:translateY(0); }
+.drawer-handle { width:36px; height:3px; background:rgba(0,212,255,0.3); border-radius:2px; margin:0 auto 16px; }
+.drawer h3 { font-family:'Orbitron',sans-serif; font-size:10px; letter-spacing:3px; color:var(--c); margin-bottom:12px; border-bottom:1px solid rgba(0,212,255,0.1); padding-bottom:8px; }
+.drawer-input {
+  width:100%; background:var(--bg3); border:1px solid rgba(0,212,255,0.2);
+  border-radius:8px; color:var(--t); font-family:'Share Tech Mono',monospace;
+  font-size:13px; padding:11px 14px; outline:none; margin-bottom:8px; -webkit-appearance:none;
+}
+.drawer-input:focus { border-color:var(--c); }
+.drawer-btn {
+  width:100%; background:var(--cg); border:1px solid var(--c);
+  color:var(--c); font-family:'Orbitron',sans-serif;
+  font-size:10px; letter-spacing:2px; padding:12px; border-radius:8px; cursor:pointer;
+  margin-bottom:8px;
+}
+.toggle-row { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(0,212,255,0.08); }
+.toggle-label { font-size:12px; color:var(--t); }
+.toggle { width:40px; height:22px; border-radius:11px; background:rgba(0,212,255,0.1); border:1px solid rgba(0,212,255,0.3); position:relative; cursor:pointer; transition:all .2s; }
+.toggle.on { background:rgba(0,212,255,0.3); border-color:var(--c); }
+.thumb { position:absolute; top:3px; left:3px; width:14px; height:14px; border-radius:50%; background:var(--td); transition:all .2s; }
+.toggle.on .thumb { left:21px; background:var(--c); box-shadow:0 0 6px var(--c); }
+
+/* Integration cards */
+.integration-card {
+  background:var(--bg3); border:1px solid rgba(0,212,255,0.15); border-radius:8px;
+  padding:12px; margin-bottom:8px;
+}
+.int-header { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.int-icon { font-size:20px; }
+.int-name { font-family:'Orbitron',sans-serif; font-size:10px; letter-spacing:2px; color:var(--c); }
+.int-desc { font-size:10px; color:var(--td); line-height:1.5; }
+.int-status { margin-left:auto; font-size:9px; letter-spacing:1px; }
+.int-status.set { color:var(--g); }
+.int-status.unset { color:var(--td); }
+
+code { background:rgba(0,212,255,0.08); padding:1px 5px; border-radius:3px; font-size:12px; }
+strong { color:var(--c); }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div>
+      <div class="logo">F.R.I.D.A.Y<span class="logo-sub">PERSONAL AI ASSISTANT</span></div>
+    </div>
+    <div class="top-right">
+      <div class="status-dot"><div class="dot" id="status-dot"></div><span id="status-text">OFFLINE</span></div>
+      <div id="top-clock">--:--</div>
+    </div>
+  </div>
+
+  <!-- MESSAGES -->
+  <div class="messages" id="messages">
+    <div class="welcome" id="welcome">
+      <div class="welcome-arc">
+        <div class="arc-ring"></div><div class="arc-ring"></div><div class="arc-ring"></div>
+        <div class="arc-core" id="arc-core"></div>
+      </div>
+      <div class="welcome-title">FRIDAY</div>
+      <div class="welcome-sub">PERSONAL AI ASSISTANT</div>
+      <div class="welcome-hint">Tap ⚙ to add your API key and activate</div>
+    </div>
+  </div>
+
+  <!-- VOICE VISUALIZER -->
+  <div class="voice-bar" id="voice-bar">
+    <span class="voice-label" id="voice-label">LISTENING</span>
+    <div class="vbar" id="v1"></div><div class="vbar" id="v2"></div><div class="vbar" id="v3"></div>
+    <div class="vbar" id="v4"></div><div class="vbar" id="v5"></div><div class="vbar" id="v6"></div>
+    <div class="vbar" id="v7"></div><div class="vbar" id="v8"></div>
+  </div>
+
+  <!-- BOTTOM AREA -->
+  <div class="bottom-area">
+    <div class="quick-strip" id="quick-strip">
+      <button class="qchip" onclick="quickMsg(this)">📧 Send email</button>
+      <button class="qchip" onclick="quickMsg(this)">💬 WhatsApp message</button>
+      <button class="qchip" onclick="quickMsg(this)">✈️ Telegram message</button>
+      <button class="qchip" onclick="quickMsg(this)">📱 Instagram DM</button>
+      <button class="qchip" onclick="quickMsg(this)">⏰ Set reminder</button>
+      <button class="qchip" onclick="quickMsg(this)">🔍 Search web</button>
+    </div>
+    <div class="input-row">
+      <textarea class="chat-input" id="chat-input" placeholder="Talk to FRIDAY..." rows="1"
+        onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="mic-btn" id="mic-btn" onclick="toggleMic()">🎤</button>
+      <button class="send-btn" onclick="sendMsg()">➤</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- SETTINGS DRAWER -->
+<div class="drawer-overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-handle"></div>
+
+  <h3>SYSTEM CONFIGURATION</h3>
+  <label style="font-size:10px;color:var(--td);letter-spacing:1px;display:block;margin-bottom:4px;">ANTHROPIC API KEY</label>
+  <input class="drawer-input" id="api-key" type="password" placeholder="sk-ant-api03-...">
+  <button class="drawer-btn" onclick="saveKey()">⚡ INITIALIZE FRIDAY</button>
+
+  <h3 style="margin-top:16px;">VOICE SETTINGS</h3>
+  <div class="toggle-row">
+    <span class="toggle-label">Auto-activate voice on open</span>
+    <div class="toggle on" id="auto-voice-toggle" onclick="toggleSetting('autoVoice')"><div class="thumb"></div></div>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">Voice response (TTS)</span>
+    <div class="toggle on" id="tts-toggle" onclick="toggleSetting('tts')"><div class="thumb"></div></div>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">Auto-send after speech</span>
+    <div class="toggle on" id="autosend-toggle" onclick="toggleSetting('autosend')"><div class="thumb"></div></div>
+  </div>
+
+  <h3 style="margin-top:16px;">INTEGRATIONS</h3>
+
+  <div class="integration-card">
+    <div class="int-header">
+      <div class="int-icon">✈️</div>
+      <div><div class="int-name">TELEGRAM</div><div class="int-status" id="tg-status">NOT SET</div></div>
+    </div>
+    <div class="int-desc">Real message sending via Telegram Bot API. FRIDAY can send messages to any contact through your bot.</div>
+    <input class="drawer-input" style="margin-top:8px;" id="tg-token" type="password" placeholder="Bot Token (from @BotFather)">
+    <input class="drawer-input" id="tg-chatid" type="text" placeholder="Your Chat ID (from @userinfobot)">
+    <button class="drawer-btn" onclick="saveTelegram()" style="margin-bottom:0;">SAVE TELEGRAM</button>
+  </div>
+
+  <div class="integration-card">
+    <div class="int-header">
+      <div class="int-icon">💬</div>
+      <div><div class="int-name">WHATSAPP</div><div class="int-status">DEEP LINK</div></div>
+    </div>
+    <div class="int-desc">FRIDAY will open WhatsApp with the message pre-written. You tap Send once. (Full auto-send requires Android app.)</div>
+  </div>
+
+  <div class="integration-card">
+    <div class="int-header">
+      <div class="int-icon">📧</div>
+      <div><div class="int-name">EMAIL</div><div class="int-status">MAILTO LINK</div></div>
+    </div>
+    <div class="int-desc">Opens your email app with subject & body filled. Works with Gmail, Outlook, any email client.</div>
+    <input class="drawer-input" style="margin-top:8px;" id="default-email" type="email" placeholder="Your email (for From field)">
+    <button class="drawer-btn" onclick="saveEmail()" style="margin-bottom:0;">SAVE EMAIL</button>
+  </div>
+
+  <div class="integration-card">
+    <div class="int-header">
+      <div class="int-icon">📱</div>
+      <div><div class="int-name">INSTAGRAM / OTHER APPS</div><div class="int-status unset">DEEP LINK</div></div>
+    </div>
+    <div class="int-desc">Opens Instagram DM screen. Full background control of apps requires a native Android app with Accessibility Services — see FRIDAY Pro below.</div>
+  </div>
+
+  <h3 style="margin-top:16px;">FRIDAY PRO (NATIVE ANDROID)</h3>
+  <div style="font-size:11px;color:var(--td);line-height:1.9;background:var(--bg3);border:1px solid rgba(0,212,255,0.15);border-radius:8px;padding:12px;">
+    For <strong>true app control</strong> (auto-send WhatsApp, control any app, run in background, listen on phone unlock):<br><br>
+    1. Install <strong>Tasker</strong> + <strong>AutoInput</strong> plugin on Android<br>
+    2. Use this web app's API as the brain<br>
+    3. Tasker scripts tap/swipe any app based on FRIDAY's commands<br><br>
+    Or build a proper <strong>Android Accessibility Service</strong> app in Android Studio. Ask FRIDAY: <em>"How do I build an Android FRIDAY app?"</em>
+  </div>
+
+  <button class="drawer-btn" style="margin-top:12px;" onclick="closeDrawer()">CLOSE</button>
+</div>
+
+<script>
+// ── STATE ──
+let apiKey = localStorage.getItem('fk') || '';
+let tgToken = localStorage.getItem('tgt') || '';
+let tgChatId = localStorage.getItem('tgc') || '';
+let defaultEmail = localStorage.getItem('em') || '';
+let history = [];
+let settings = JSON.parse(localStorage.getItem('fs') || '{"autoVoice":true,"tts":true,"autosend":true}');
+let isRecording = false;
+let recognition = null;
+let waveAnim = null;
+let synth = window.speechSynthesis;
+let voicesLoaded = false;
+
+// ── SYSTEM PROMPT ──
+const SYS = `You are F.R.I.D.A.Y — Female Replacement Intelligent Digital Assistant Youth. You are Avinash Singh's personal mobile AI assistant. He is an ECE engineering student at MITS Gwalior and a manga creator (MangaASP). Call him "Boss" occasionally.
+
+You are concise, confident, calm. No filler phrases. You have special abilities:
+
+MESSAGING TOOLS — When user asks to send a message, extract: platform, recipient, message content. Reply with this exact JSON block (plus your conversational reply):
+<ACTION>{"type":"message","platform":"whatsapp|telegram|instagram|sms","to":"recipient name/number","msg":"message text"}</ACTION>
+
+EMAIL TOOL — When user asks to send an email, extract: to, subject, body:
+<ACTION>{"type":"email","to":"email@address.com","subject":"Subject here","body":"Email body here"}</ACTION>
+
+REMINDER TOOL — When user asks to set a reminder:
+<ACTION>{"type":"reminder","title":"Reminder title","time":"HH:MM","note":"optional note"}</ACTION>
+
+SEARCH TOOL — When user wants to open a web search:
+<ACTION>{"type":"search","query":"search terms"}</ACTION>
+
+CALL TOOL — When user wants to make a call:
+<ACTION>{"type":"call","to":"number or contact name"}</ACTION>
+
+Always include your natural conversational reply AND the action block if an action is needed. For complex tasks, ask for missing details (like recipient's number for WhatsApp).
+
+Today: ${new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}
+Time: ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true})}`;
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', () => {
+  updateClock();
+  setInterval(updateClock, 10000);
+  initSTT();
+  loadSettings();
+  if (apiKey) {
+    updateStatus('online');
+    boot();
+  }
+  // Auto voice on visibility
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && settings.autoVoice && apiKey && !isRecording) {
+      setTimeout(startMic, 800);
+    }
+  });
+  // Also auto-start on load if configured
+  if (settings.autoVoice && apiKey) {
+    setTimeout(startMic, 1200);
+  }
+});
+
+function boot() {
+  removeWelcome();
+  addMsg('friday', `Online, Boss. All systems nominal.\n\nI can send messages, emails, set reminders, answer questions, and more. Just tell me what you need — or tap the quick buttons below.\n\nWhat's the mission?`);
+}
+
+// ── CLOCK ──
+function updateClock() {
+  document.getElementById('top-clock').textContent = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
+}
+
+// ── SETTINGS ──
+function loadSettings() {
+  ['autoVoice','tts','autosend'].forEach(k => {
+    const el = document.getElementById(k.replace(/([A-Z])/g,'-$1').toLowerCase()+'-toggle');
+    if (el) el.className = `toggle ${settings[k]?'on':''}`;
+  });
+  if (tgToken && tgChatId) document.getElementById('tg-status').textContent = 'CONFIGURED';
+}
+
+function toggleSetting(key) {
+  settings[key] = !settings[key];
+  localStorage.setItem('fs', JSON.stringify(settings));
+  loadSettings();
+}
+
+function saveKey() {
+  const v = document.getElementById('api-key').value.trim();
+  if (v && !v.startsWith('•')) { apiKey = v; localStorage.setItem('fk', v); }
+  if (!apiKey) return;
+  document.getElementById('api-key').value = '••••••••••••••••';
+  updateStatus('online');
+  closeDrawer();
+  if (!document.getElementById('welcome')) return;
+  boot();
+}
+
+function saveTelegram() {
+  tgToken = document.getElementById('tg-token').value.trim();
+  tgChatId = document.getElementById('tg-chatid').value.trim();
+  localStorage.setItem('tgt', tgToken);
+  localStorage.setItem('tgc', tgChatId);
+  document.getElementById('tg-status').textContent = 'CONFIGURED';
+  document.getElementById('tg-status').className = 'int-status set';
+}
+
+function saveEmail() {
+  defaultEmail = document.getElementById('default-email').value.trim();
+  localStorage.setItem('em', defaultEmail);
+}
+
+// ── DRAWER ──
+let drawerOpen = false;
+function openDrawer() {
+  drawerOpen = true;
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function closeDrawer() {
+  drawerOpen = false;
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+// ── STATUS ──
+function updateStatus(s) {
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('status-text');
+  if (s==='online') { dot.className='dot online'; txt.textContent='ONLINE'; }
+  else if (s==='thinking') { dot.className='dot'; dot.style.background='var(--a)'; txt.textContent='THINKING'; }
+  else if (s==='speaking') { dot.className='dot'; dot.style.background='var(--c)'; txt.textContent='SPEAKING'; }
+  else { dot.className='dot'; txt.textContent='OFFLINE'; }
+}
+
+// ── MESSAGES ──
+function removeWelcome() {
+  const w = document.getElementById('welcome');
+  if (w) w.remove();
+}
+
+function addMsg(role, text, actionBtns) {
+  removeWelcome();
+  const box = document.getElementById('messages');
+  const now = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
+  const d = document.createElement('div');
+  d.className = `msg ${role}`;
+  const av = role==='friday'?'FRI':'YOU';
+  let btns = '';
+  if (actionBtns && actionBtns.length) {
+    btns = `<div class="action-btns">${actionBtns.map(b=>`<button class="action-btn" onclick="runAction(${JSON.stringify(b).replace(/"/g,'&quot;')})">${b.label}</button>`).join('')}</div>`;
+  }
+  d.innerHTML = `
+    <div class="avatar">${av}</div>
+    <div class="bubble-wrap">
+      <div class="bubble">${fmt(text)}${btns}</div>
+      <div class="msg-time">${now}</div>
+    </div>`;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+}
+
+function showTyping() {
+  removeWelcome();
+  const box = document.getElementById('messages');
+  const d = document.createElement('div');
+  d.id='typing'; d.className='msg friday';
+  d.innerHTML=`<div class="avatar">FRI</div><div class="bubble-wrap"><div class="bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div></div>`;
+  box.appendChild(d);
+  box.scrollTop=box.scrollHeight;
+}
+function removeTyping() { const t=document.getElementById('typing'); if(t)t.remove(); }
+
+function fmt(t) {
+  return t
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/`(.*?)`/g,'<code>$1</code>')
+    .replace(/\n/g,'<br>');
+}
+
+// ── SEND ──
+async function sendMsg(override) {
+  if (!apiKey) { openDrawer(); return; }
+  const inp = document.getElementById('chat-input');
+  const text = override || inp.value.trim();
+  if (!text) return;
+  if (!override) { inp.value=''; autoResize(inp); }
+
+  addMsg('user', text);
+  history.push({role:'user',content:text});
+
+  updateStatus('thinking');
+  showTyping();
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:SYS,messages:history.slice(-16)})
+    });
+    const data = await res.json();
+    removeTyping();
+
+    if(data.error){ updateStatus('online'); addMsg('friday',`Error: ${data.error.message}`); return; }
+
+    const raw = data.content[0].text;
+    history.push({role:'assistant',content:raw});
+
+    // Parse ACTION blocks
+    const actionMatch = raw.match(/<ACTION>([\s\S]*?)<\/ACTION>/);
+    let displayText = raw.replace(/<ACTION>[\s\S]*?<\/ACTION>/g,'').trim();
+    let actionBtns = [];
+
+    if (actionMatch) {
+      try {
+        const action = JSON.parse(actionMatch[1]);
+        actionBtns = buildActionBtns(action);
+      } catch(e){}
+    }
+
+    updateStatus(settings.tts ? 'speaking' : 'online');
+    addMsg('friday', displayText, actionBtns);
+    if (settings.tts) speak(displayText);
+
+  } catch(e) {
+    removeTyping(); updateStatus('online');
+    addMsg('friday',`Network error, Boss. Check your connection.`);
+  }
+}
+
+// ── ACTION BUTTONS ──
+function buildActionBtns(action) {
+  const btns = [];
+  if (action.type === 'message') {
+    if (action.platform === 'telegram' && tgToken && tgChatId) {
+      btns.push({label:`✈️ Send on Telegram`, action:'telegram', data:action});
+    } else if (action.platform === 'whatsapp') {
+      btns.push({label:`💬 Open WhatsApp`, action:'whatsapp', data:action});
+    } else if (action.platform === 'instagram') {
+      btns.push({label:`📱 Open Instagram DM`, action:'instagram', data:action});
+    } else if (action.platform === 'sms') {
+      btns.push({label:`📲 Open SMS`, action:'sms', data:action});
+    } else {
+      btns.push({label:`💬 Open WhatsApp`, action:'whatsapp', data:action});
+    }
+  } else if (action.type === 'email') {
+    btns.push({label:`📧 Open Email App`, action:'email', data:action});
+  } else if (action.type === 'reminder') {
+    btns.push({label:`⏰ Set Reminder`, action:'reminder', data:action});
+  } else if (action.type === 'search') {
+    btns.push({label:`🔍 Search`, action:'search', data:action});
+  } else if (action.type === 'call') {
+    btns.push({label:`📞 Call`, action:'call', data:action});
+  }
+  return btns;
+}
+
+function runAction(btn) {
+  const {action, data} = btn;
+  if (action==='telegram') sendTelegram(data.msg || '');
+  else if (action==='whatsapp') openWhatsApp(data.to, data.msg);
+  else if (action==='instagram') openInstagram(data.to);
+  else if (action==='sms') openSMS(data.to, data.msg);
+  else if (action==='email') openEmail(data.to, data.subject, data.body);
+  else if (action==='reminder') setReminder(data.title, data.time);
+  else if (action==='search') openSearch(data.query);
+  else if (action==='call') makeCall(data.to);
+}
+
+// ── INTEGRATIONS ──
+async function sendTelegram(msg) {
+  if (!tgToken || !tgChatId) { addMsg('friday','Please configure Telegram in settings first, Boss.'); openDrawer(); return; }
+  try {
+    const r = await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:tgChatId, text:msg, parse_mode:'Markdown'})
+    });
+    const d = await r.json();
+    if (d.ok) addMsg('friday','Telegram message sent successfully, Boss. ✓');
+    else addMsg('friday',`Telegram error: ${d.description}`);
+  } catch(e) { addMsg('friday','Failed to send Telegram message.'); }
+}
+
+function openWhatsApp(to, msg) {
+  const num = to ? to.replace(/\D/g,'') : '';
+  const url = num
+    ? `https://wa.me/${num}?text=${encodeURIComponent(msg||'')}`
+    : `https://wa.me/?text=${encodeURIComponent(msg||'')}`;
+  window.open(url, '_blank');
+  addMsg('friday','WhatsApp opened with the message pre-filled, Boss. Tap Send to deliver it. ✓');
+}
+
+function openInstagram(to) {
+  window.open('https://www.instagram.com/direct/inbox/', '_blank');
+  addMsg('friday','Instagram DM inbox opened. Full auto-send requires the native Android app — I\'ll draft the message for you to paste.');
+}
+
+function openSMS(to, msg) {
+  const num = to ? to.replace(/\D/g,'') : '';
+  window.location.href = `sms:${num}?body=${encodeURIComponent(msg||'')}`;
+}
+
+function openEmail(to, subject, body) {
+  const url = `mailto:${to||''}?subject=${encodeURIComponent(subject||'')}&body=${encodeURIComponent(body||'')}`;
+  window.location.href = url;
+  addMsg('friday','Email app opened with the message ready, Boss. Hit send when you\'re good. ✓');
+}
+
+function setReminder(title, time) {
+  if ('Notification' in window) {
+    Notification.requestPermission().then(p => {
+      if (p==='granted') {
+        addMsg('friday',`Reminder set: "${title}" at ${time}, Boss. I'll notify you.`);
+        if (time) {
+          const [h,m] = time.split(':').map(Number);
+          const now = new Date(), target = new Date();
+          target.setHours(h, m, 0);
+          if (target < now) target.setDate(target.getDate()+1);
+          const delay = target-now;
+          setTimeout(()=>new Notification('F.R.I.D.A.Y Reminder',{body:title,icon:''}),delay);
+        }
+      } else { addMsg('friday','Notification permission denied. Reminder noted but cannot alert.'); }
+    });
+  } else { addMsg('friday',`Reminder logged: "${title}" at ${time}`); }
+}
+
+function openSearch(query) {
+  window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+}
+
+function makeCall(to) {
+  const num = to.replace(/\D/g,'');
+  window.location.href = `tel:${num}`;
+}
+
+// ── TTS ──
+function speak(text) {
+  if (!settings.tts) return;
+  const clean = text.replace(/<[^>]+>/g,'').replace(/[*`]/g,'').substring(0,400);
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance(clean);
+  const voices = synth.getVoices();
+  const v = voices.find(x=>x.name.includes('Samantha'))||voices.find(x=>x.lang==='en-US'&&x.name.toLowerCase().includes('female'))||voices.find(x=>x.lang==='en-US')||voices[0];
+  if(v) u.voice=v;
+  u.rate=0.9; u.pitch=1.05; u.volume=1;
+  u.onend=()=>updateStatus('online');
+  synth.speak(u);
+}
+
+// ── STT ──
+function initSTT() {
+  const SR = window.SpeechRecognition||window.webkitSpeechRecognition;
+  if (!SR) return;
+  recognition = new SR();
+  recognition.lang='en-IN';
+  recognition.interimResults=true;
+  recognition.continuous=false;
+  let final='';
+  recognition.onresult=e=>{
+    final = Array.from(e.results).map(r=>r[0].transcript).join('');
+    document.getElementById('chat-input').value=final;
+    document.getElementById('voice-label').textContent = final.substring(0,30)+(final.length>30?'...':'') || 'LISTENING';
+    if(e.results[e.results.length-1].isFinal && settings.autosend){
+      stopMic(); sendMsg();
+    }
+  };
+  recognition.onerror=()=>stopMic();
+  recognition.onend=()=>{ if(isRecording) stopMic(); };
+}
+
+function toggleMic() {
+  if (isRecording) stopMic(); else startMic();
+}
+
+function startMic() {
+  if (!recognition) { addMsg('friday','Speech recognition not available in this browser. Try Chrome.'); return; }
+  synth.cancel();
+  isRecording=true;
+  try { recognition.start(); } catch(e){}
+  document.getElementById('mic-btn').className='mic-btn recording';
+  document.getElementById('voice-bar').classList.add('active');
+  document.getElementById('voice-label').textContent='LISTENING';
+  startWave();
+}
+
+function stopMic() {
+  isRecording=false;
+  try { recognition.stop(); } catch(e){}
+  document.getElementById('mic-btn').className='mic-btn';
+  document.getElementById('voice-bar').classList.remove('active');
+  stopWave();
+}
+
+// ── WAVE ──
+const bars=['v1','v2','v3','v4','v5','v6','v7','v8'];
+function startWave() {
+  waveAnim=setInterval(()=>{
+    bars.forEach(id=>{
+      document.getElementById(id).style.height=(Math.random()*28+3)+'px';
+    });
+  },90);
+}
+function stopWave() {
+  clearInterval(waveAnim);
+  bars.forEach(id=>document.getElementById(id).style.height='3px');
+}
+
+// ── HELPERS ──
+function quickMsg(btn) {
+  document.getElementById('chat-input').value = btn.textContent.substring(2);
+  document.getElementById('chat-input').focus();
+}
+
+function handleKey(e) {
+  if (e.key==='Enter'&&!e.shiftKey) { e.preventDefault(); sendMsg(); }
+}
+
+function autoResize(el) {
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,100)+'px';
+}
+
+// ── SWIPE UP = SETTINGS ──
+let touchStartY=0;
+document.addEventListener('touchstart',e=>touchStartY=e.touches[0].clientY,{passive:true});
+document.addEventListener('touchend',e=>{
+  const dy=touchStartY-e.changedTouches[0].clientY;
+  if(dy>60 && !drawerOpen) openDrawer();
+},{passive:true});
+</script>
+</body>
+</html>
